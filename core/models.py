@@ -14,16 +14,25 @@ class Transaction(models.Model):
     )
     ref = models.CharField(max_length=150, unique=True, default=uuid.uuid4)
     invoice_number = models.CharField(max_length=255, unique=True, default=uuid.uuid4)
-    # TRANSACTION_TYPE = [(1, "recive"), (2, "send")]
-    # action = models.CharField(max_length=1, choices=TRANSACTION_TYPE)
-    STATE_TYPE = [(1, "Pending"), (2, "Done")]
+    STATE_TYPE = [(1, "Pending"), (2, "Done"), (3, "Failed")]
     state = models.CharField(max_length=1, choices=STATE_TYPE, default=1)
     NETWORK_TYPE = [(1, "TRC20"), (2, "BEP20")]
     network = models.CharField(max_length=1, choices=NETWORK_TYPE)
 
-    def __str__(slef):
-        return f"{str(sender)} {str(amount)}"
-
 
 class Wallet(models.Model):
     address = models.CharField(max_length=255)
+    NETWORK_TYPE = [(1, "TRC20"), (2, "BEP20")]
+    network = models.CharField(max_length=1, choices=NETWORK_TYPE)
+
+
+class Receiver(models.Model):
+    wallet = models.OneToOneField(Wallet, on_delete=models.PROTECT)
+    update_time = models.DateTimeField(default=datetime.datetime.now(), editable=False)
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            original_receiver = Receiver.objects.get(pk=self.pk)
+            if original_receiver.wallet != self.wallet:
+                self.update_time = timezone.now()
+        super().save(*args, **kwargs)
