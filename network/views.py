@@ -47,6 +47,7 @@ class Trigger(generics.CreateAPIView, API):
             response_data = {
                 "status": "error",
                 "message": "Wallet does not exist.",
+                "invoice_number": invoice_number,
             }
             return Response(response_data, status=status.HTTP_403_FORBIDDEN)
 
@@ -67,7 +68,7 @@ class Trigger(generics.CreateAPIView, API):
             response_data = {
                 "status": "success",
                 "message": "Transaction completed successfully.",
-                "transaction_id": transaction.id,
+                "invoice_number": invoice_number,
             }
             return Response(response_data, status=status.HTTP_200_OK)
 
@@ -77,6 +78,7 @@ class Trigger(generics.CreateAPIView, API):
             response_data = {
                 "status": "error",
                 "message": "Transaction failed.",
+                "invoice_number": invoice_number,
             }
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
