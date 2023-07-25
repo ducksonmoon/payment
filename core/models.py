@@ -13,6 +13,7 @@ class Transaction(models.Model):
         default=datetime.datetime.now() + datetime.timedelta(minutes=5), editable=False
     )
     ref = models.CharField(max_length=150, unique=True, default=uuid.uuid4)
+    invoice_number = models.CharField(max_length=255, unique=True, default=uuid.uuid4)
     # TRANSACTION_TYPE = [(1, "recive"), (2, "send")]
     # action = models.CharField(max_length=1, choices=TRANSACTION_TYPE)
     STATE_TYPE = [(1, "Pending"), (2, "Done")]
