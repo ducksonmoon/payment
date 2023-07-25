@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel</title>
+    <!-- Bootstrap CSS link (you can replace this with your own hosted version if needed) -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <form method="POST">
+        <div class="input-group" style="width: 50%">
+          {% csrf_token %}
+          <input
+            type="text"
+            name="address"
+            class="form-control"
+            placeholder="Wallet Address"
+            aria-label="Wallet Address"
+            aria-describedby="button-addon2"
+          />
+          <select class="form-select" id="inputGroupSelect01" name="network">
+            <option value="1" selected>TRC20</option>
+            <option value="2">PEB20</option>
+          </select>
+          <button class="btn btn-primary" type="submit" id="button-addon2">
+            +
+          </button>
+        </div>
+      </form>
+
+      <br />
+      <table id="myTable" class="display">
+        <thead>
+          <tr>
+            <th>Network</th>
+            <th>State</th>
+            <th>Invoice Number</th>
+            <th>Amount</th>
+            <th>TX ID</th>
+            <th>Sender</th>
+            <th>Receiver</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in qs %}
+          <tr>
+            <td>{{t.network}}</td>
+            <td>{{t.state}}</td>
+            <td>{{t.invoice_number}}</td>
+            <td>{{t.amount}}</td>
+            <td>{{t.txid}}</td>
+            <td>{{t.sender}}</td>
+            <td>{{t.receiver}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bootstrap JS scripts (make sure to include jQuery and Popper.js before Bootstrap.js) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.js"></script>
+
+    <script>
+      let table = new DataTable("#myTable", { scrollX: true });
+    </script>
+  </body>
+</html>
