@@ -10,6 +10,9 @@ from . import serializers
 from core.models import Transaction, Wallet
 from network.api import API
 
+FAILED = 3
+DONE = 2
+
 
 class Trigger(generics.CreateAPIView, API):
     queryset = Transaction.objects.all()
@@ -25,14 +28,11 @@ class Trigger(generics.CreateAPIView, API):
                     async with session.get(url, headers=headers) as response:
                         response = await response.json()
                         for t in self.get_response_data(response):
-                            if (
-                                self.get_lookup_key(t) == transaction.txid
-                                and self.get_lookup_amount(t) == transaction.amount
-                            ):
+                            if self.get_lookup_amount(t) == transaction.amount:
                                 return True
 
                 except Exception as e:
-                    print(f"Error while checking txid: {e}")
+                    print(f"Error while checking: {e}")
 
                 await asyncio.sleep(5)
 
@@ -42,6 +42,9 @@ class Trigger(generics.CreateAPIView, API):
 
         self.network = serializer.validated_data.get("network", None)
         self.receiver = serializer.validated_data.get("receiver", None)
+        additional_data = {"receiver": self.receiver}
+        data_to_create = {**serializer.validated_data, **additional_data}
+        transaction = serializer.save(**data_to_create)
 
         if Wallet.objects.filter(address=self.receiver).count() == 0:
             response_data = {
@@ -49,11 +52,10 @@ class Trigger(generics.CreateAPIView, API):
                 "message": "Wallet does not exist.",
                 "invoice_number": transaction.invoice_number,
             }
-            return Response(response_data, status=status.HTTP_403_FORBIDDEN)
+            transaction.state = FAILED
+            transaction.save()
 
-        additional_data = {"receiver": self.receiver}
-        data_to_create = {**serializer.validated_data, **additional_data}
-        transaction = serializer.save(**data_to_create)
+            return Response(response_data, status=status.HTTP_403_FORBIDDEN)
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -62,7 +64,7 @@ class Trigger(generics.CreateAPIView, API):
         )
 
         if result:
-            transaction.state = 2  # 2 corresponds to "Done" in STATE_TYPE choices
+            transaction.state = DONE
             transaction.save()
             print("Transaction completed")
             response_data = {
@@ -73,7 +75,7 @@ class Trigger(generics.CreateAPIView, API):
             return Response(response_data, status=status.HTTP_200_OK)
 
         else:
-            transaction.state = 3  # 3 corresponds to "Failed" in STATE_TYPE choices
+            transaction.state = FAILED
             transaction.save()
             response_data = {
                 "status": "error",
